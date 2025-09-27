@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<%- include( '../partial/commonCss' ) %>
+</head>
+
+<body>
+	<!--Preloader-->
+	<div class="preloader-it">
+		<div class="la-anim-1"></div>
+	</div>
+	<!--/Preloader-->
+	<div class="wrapper  theme-1-active pimary-color-blue">
+
+		<%- include( '../partial/header' ) %>
+
+			<%- include( '../partial/sidebar' ) %>
+
+				<!-- Main Content -->
+				<div class="page-wrapper">
+					<div class="container-fluid">
+
+						<!-- Title -->
+						<div class="row heading-bg">
+							<div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+								<h5 class="txt-dark">Material Master</h5>
+							</div>
+							<!-- Breadcrumb -->
+							<div class="col-lg-9 col-sm-8 col-md-8 col-xs-12 text-right">
+								<button class="btn  btn-primary btn-sm btn-rounded" onclick="AddNewMaterial()"><i
+										class="fa fa-plus"></i> Add New </button>
+							</div>
+							<!-- /Breadcrumb -->
+						</div>
+						<!-- /Title -->
+
+						<!-- Row -->
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="panel panel-default card-view">
+									<div class="panel-heading">
+										<div class="pull-left">
+											<h6 class="panel-title txt-dark">Material Master List</h6>
+										</div>
+										<div class="clearfix"></div>
+									</div>
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body">
+											<div class="table-wrap">
+												<div class="table-responsive">
+													<table id="MaterialMasterTable" class="table table-hover display  pb-30 text-center">
+														<thead>
+															<tr>
+																<th class="text-center">Sr. No.</th>
+																<th class="text-center">Material Name</th>
+																<th class="text-center">Action</th>
+															</tr>
+														</thead>
+														<tfoot>
+															<tr>
+																<th class="text-center">Sr. No.</th>
+																<th class="text-center">Material Name</th>
+																<th class="text-center">Action</th>
+															</tr>
+														</tfoot>
+														<tbody>															
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<!-- sample modal content -->
+						<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="AddMaterial"
+							aria-labelledby="myLargeModalLabel" aria-hidden="true">
+							<input type="hidden" id="editId">
+							<div class="modal-dialog modal-md">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal"
+											aria-hidden="true">×</button>
+										<h5 class="modal-title" id="myLargeModalLabel">Add New Record</h5>
+									</div>
+									<div class="modal-body">
+										<div class="row">
+											<div class="col-md-12">
+												<div class="form-group">
+													<label class="control-label mb-10 text-left">Material Name</label>
+													<input type="text" id="Material_name" class="form-control">
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer text-center">
+										<button type="submit" class="btn btn-success  mr-10 submit-Material">Submit</button>
+
+										<button type="button" class="btn btn-danger text-left"
+											data-dismiss="modal">Close</button>
+									</div>
+								</div>
+								<!-- /.modal-content -->
+							</div>
+							<!-- /.modal-dialog -->
+						</div>
+							
+
+
+					</div>
+
+					<%- include( '../partial/footer' ) %>
+
+				</div>
+				<!-- /Main Content -->
+
+	</div>
+	<!-- /#wrapper -->
+
+	<!-- JavaScript -->
+
+	<!-- jQuery -->
+
+	<%- include( '../partial/commonJs' ) %>
+		<script src="dist/custom/js/materialmaster.js"></script>
+</body>
+
+</html>

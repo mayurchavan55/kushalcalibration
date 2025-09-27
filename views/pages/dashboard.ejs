@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<%- include( '../partial/commonCss' ) %>
+</head>
+
+<body>
+	<!--Preloader-->
+	<div id="loading_coupon" class="d-none">
+		<img id="loading-image" src="./img/Spinner-1s-200px.png" alt="Loading...">
+		<divcaption id="loading-cap"></divcaption>
+	</div>
+	<!--/Preloader-->
+	<div class="wrapper  theme-1-active pimary-color-blue">
+
+		<%- include( '../partial/header' ) %>
+
+			<%- include( '../partial/sidebar' ) %>
+
+				<!-- Main Content -->
+				<div class="page-wrapper">
+					<div class="container-fluid">
+
+						<!-- Title -->
+						<div class="row heading-bg">
+							<div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+								<h5 class="txt-dark">Dashboard</h5>
+							</div>
+							<!-- Breadcrumb -->
+							<!-- <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12 text-right">
+								<button class="btn  btn-primary btn-sm btn-rounded" onclick="userDetailsModel()"><i
+										class="fa fa-plus"></i> Add New
+									Customer</button>
+							</div> -->
+							<!-- /Breadcrumb -->
+						</div>
+						<!-- /Title -->
+
+						<!-- Row -->
+						<div class="row">
+							<div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+								<div class="panel panel-default card-view pa-0">
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body pa-0">
+											<div class="sm-data-box">
+												<div class="container-fluid">
+													<div class="row">
+														<div class="col-xs-9 text-center pl-0 pr-0 data-wrap-left">
+															<span class="txt-dark block counter"><span
+																	class="total_customer"></span></span>
+															<span class="weight-500 uppercase-font block font-13">Total
+																Customer</span>
+														</div>
+														<div class="col-xs-3 text-center  pl-0 pr-0 data-wrap-right">
+															<i
+																class="icon-user-following data-right-rep-icon txt-grey"></i>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+								<div class="panel panel-default card-view pa-0">
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body pa-0">
+											<div class="sm-data-box">
+												<div class="container-fluid">
+													<div class="row">
+														<div class="col-xs-9 text-center pl-0 pr-0 data-wrap-left">
+															<span class="txt-dark block counter"><span
+																	class="active_customer"></span></span>
+															<span class="weight-500 uppercase-font block">Active
+																Customer</span>
+														</div>
+														<div class="col-xs-3 text-center  pl-0 pr-0 data-wrap-right">
+															<i
+																class="icon-control-rewind data-right-rep-icon txt-grey"></i>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+								<div class="panel panel-default card-view pa-0">
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body pa-0">
+											<div class="sm-data-box">
+												<div class="container-fluid">
+													<div class="row">
+														<div class="col-xs-9 text-center pl-0 pr-0 data-wrap-left">
+															<span class="txt-dark block counter"><span
+																	class="due_customer"></span></span>
+															<span class="weight-500 uppercase-font block">Customer Dues
+																(Next 30 Days)</span>
+														</div>
+														<div class="col-xs-3 text-center  pl-0 pr-0 data-wrap-right">
+															<i class="icon-layers data-right-rep-icon txt-grey"></i>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="panel panel-default card-view">
+									<div class="panel-heading">
+										<div class="pull-left">
+											<h6 class="panel-title txt-dark">Upcoming Customer Calibration Dues (30
+												Days)</h6>
+										</div>
+										<div class="clearfix"></div>
+									</div>
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body">
+											<div class="table-wrap">
+												<div class="table-responsive">
+													<table id="customer_due_list"
+														class="table table-hover display  pb-30">
+														<thead>
+															<tr>
+																<!-- <th>Sr. No.</th> -->
+																<th>Company Name</th>
+																<th>Contact Name</th>
+																<th>Email Id</th>
+																<th>Mobile No</th>
+																<th>Due Date</th>
+																<th>Is Reminder Send</th>
+																<th>Details</th>
+															</tr>
+														</thead>
+														<tbody>
+
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="sendReminder"
+						aria-labelledby="sendReminderLabel" aria-hidden="true">
+						<input type="hidden" id="editId">
+						<div class="modal-dialog modal-lg">
+							<div class="modal-content">
+								<div class="modal-header">
+
+									<button type="button" class="close" data-dismiss="modal"
+										aria-hidden="true">×</button>
+									<button class="btn pull-right btn-primary btn-sm btn-rounded mr-20" id="sendReminderButton">Send Reminder</button>
+									<h5 class="modal-title" id="sendReminderLabel"></h5>
+								</div>
+								<div class="modal-body">
+									<div class="row">
+										<div class="col-md-12">
+											<div class="table-wrap">
+												<div class="table-responsive">
+													<table id="job_due_list"
+														class="table table-hover display  pb-30">
+														<thead>
+															<tr>
+																<th>Sr. No.</th>
+																<th>Serial No</th>
+																<th>Instrument Name</th>
+																<th>Range</th>
+																<th>Resolution</th>
+																<th>Make</th>
+																<th>Calibration Date</th>
+																<th>Next Calibration Date</th>
+															</tr>
+														</thead>
+														<tbody>
+
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>
+
+					<%- include( '../partial/footer' ) %>
+
+				</div>
+				<!-- /Main Content -->
+
+	</div>
+	<!-- /#wrapper -->
+
+	<!-- JavaScript -->
+
+	<!-- jQuery -->
+
+	<%- include( '../partial/commonJs' ) %>
+		<script src="dist/custom/js/dashboard.js"></script>
+</body>
+
+</html>

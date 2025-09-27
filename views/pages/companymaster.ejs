@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include( '../partial/commonCss' ) %>
+    <style>
+      @media (min-width: 992px) {
+        .modal-lg {
+          width: 90% !important;
+        }
+      }
+
+      .changetheinputfiled,
+      .gaugeinputfiled {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!--Preloader-->
+    <div class="preloader-it">
+      <div class="la-anim-1"></div>
+    </div>
+    <!--/Preloader-->
+    <div class="wrapper theme-1-active pimary-color-blue">
+      <%- include( '../partial/header' ) %> <%- include( '../partial/sidebar' )
+      %>
+
+      <!-- Main Content -->
+      <div class="page-wrapper">
+        <div class="container-fluid">
+          <!-- Title -->
+          <div class="row heading-bg">
+            <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+              <h5 class="txt-dark">Company List</h5>
+            </div>
+          </div>
+          <!-- /Title -->
+
+          <!-- Row -->
+          <div class="row">
+            <div class="col-md-12">
+              <div class="panel panel-default card-view">
+                <div class="panel-wrapper collapse in">
+                  <div class="panel-body">
+                    <div class="form-wrap">
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <div class="form-group col-sm-3">
+                            <label class="control-label mb-10 text-left"
+                              >Company Name</label
+                            >
+                            <div class="form-group col">
+                              <select
+                                id="customer-name"
+                                class="form-control mb-3"
+                                onchange="getinventorytabledata()"
+                              >
+                                <option value="">Select Company</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="class = col-md-12 col-sm-12 col-xs-12 form-group customer_table d-none"
+            >
+              <div class="panel panel-default card-view">
+                <div class="panel-wrapper collapse in">
+                  <div class="panel-body">
+                    <div class="container-fluid">
+                      <!-- Row -->
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <div class="panel-wrapper collapse in">
+                            <div id="display-company-name" type="hidden"></div>
+                            <div
+                              id="display-company-address"
+                              type="hidden"
+                            ></div>
+                            <div class="panel-body">
+                              <div class="table-wrap">
+                                <div class="table-responsive">
+                                  <table
+                                    id="CompanyTable"
+                                    class="table table-hover display pb-30"
+                                  >
+                                    <button
+                                      class="btn btn-primary btn-sm btn-rounded"
+                                      onclick="downloadTablePDF(Company_name, Company_address)"
+                                    >
+                                      Download PDF
+                                    </button>
+                                    <button
+                                      class="btn btn-primary btn-sm btn-rounded"
+                                      onclick="downloadTableExcel()"
+                                    >
+                                      Download Excel
+                                    </button>
+                                    <thead>
+                                      <tr>
+                                        <th>Sr.No</th>
+                                        <th style="width: auto">Inst ID</th>
+                                        <th>Serial No</th>
+                                        <th>Inst Name</th>
+                                        <th>Size/Range</th>
+                                        <th>LC/Tol</th>
+                                        <th>Make</th>
+                                        <th>Location</th>
+                                        <th>Cal Date</th>
+                                        <th>Due Date</th>
+                                        <th>Remark</th>
+                                      </tr>
+                                    </thead>
+
+                                    <tbody id="Company_table"></tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- /Row -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%- include( '../partial/footer' ) %>
+      </div>
+      <!-- /Main Content -->
+    </div>
+    <%- include( '../partial/commonJs' ) %>
+    <script src="../vendors/bower_components/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="../vendors/bower_components/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="../vendors/bower_components/jszip/dist/jszip.min.js"></script>
+    <script src="../vendors/bower_components/pdfmake/build/pdfmake.min.js"></script>
+    <script src="../vendors/bower_components/pdfmake/build/vfs_fonts.js"></script>
+    <script src="../vendors/bower_components/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="../vendors/bower_components/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="dist/custom/js/common.js"></script>
+    <script src="dist/custom/js/companymaster.js"></script>
+  </body>
+</html>

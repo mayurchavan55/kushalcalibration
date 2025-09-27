@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "root",
+    "database": "db_01",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging":true
+  },
+  "test": {
+    "username": "postgres",
+    "password": "root",
+    "database": "postgres",
+    "host": "localhost",
+    "dialect": "postgres",
+    "logging":false
+  },
+  "node_server":{
+    "url":"localhost",
+    "port":4000
+  },
+  "uploadDir":{
+    "JSONDir":"F:/IplApplications/ipl_webpages/public/uploads",
+    "ReportDir":"F:/IplApplications/ipl_webpages/public/Reports"
+  }
+}

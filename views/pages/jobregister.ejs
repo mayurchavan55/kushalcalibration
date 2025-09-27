@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<%- include( '../partial/commonCss' ) %>
+		<link href="../vendors/bower_components/input-search/jquery-editable-select.min.css" rel="stylesheet" />
+
+		<style>
+			@media (min-width: 992px) {
+				.modal-lg {
+					width: 90% !important;
+				}
+			}
+
+			.changetheinputfiled,
+			.gaugeinputfiled {
+				display: none;
+			}
+		</style>
+</head>
+
+<body>
+	<!--Preloader-->
+	<div class="preloader-it">
+		<div class="la-anim-1"></div>
+	</div>
+	<!--/Preloader-->
+	<div class="wrapper  theme-1-active pimary-color-blue">
+
+		<%- include( '../partial/header' ) %>
+
+			<%- include( '../partial/sidebar' ) %>
+
+				<!-- Main Content -->
+				<div class="page-wrapper">
+					<div class="container-fluid">
+
+						<!-- Title -->
+						<div class="row heading-bg">
+							<div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+								<h5 class="txt-dark">Job Register</h5>
+							</div>
+							<!-- Breadcrumb -->
+							<div class="col-lg-9 col-sm-8 col-md-8 col-xs-12 text-right">
+								<button class="btn  btn-primary btn-sm btn-rounded" onclick="jobregisterModel()"><i
+										class="fa fa-plus"></i> Add New Job Register</button>
+							</div>
+							<!-- /Breadcrumb -->
+						</div>
+						<!-- /Title -->
+
+						<!-- Row -->
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="panel panel-default card-view">
+									<div class="panel-heading">
+										<div class="pull-left">
+											<h6 class="panel-title txt-dark">Job Register List</h6>
+										</div>
+										<div class="clearfix"></div>
+									</div>
+									<div class="panel-wrapper collapse in">
+										<div class="panel-body">
+											<div class="table-wrap">
+												<div class="table-responsive">
+													<table id="job_register_table"
+														class="table table-hover display  pb-30">
+														<thead>
+															<th>Sr. No.</th>
+															<th>Instrument ID</th>
+															<th>Serial No</th>
+															<th>Instrument Name</th>
+															<th>Range</th>
+															<th>Resolution</th>
+															<th>Make</th>
+															<th class="d-none">Location</th>
+															<th>Calibration Date</th>
+															<th>Due Date</th>
+															<th>Action</th>
+														</thead>
+														<tbody>
+
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel-wrapper collapse in">
+							<div class="panel-body">
+								<!-- sample modal content -->
+								<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog"
+									id="jobregisterModal" aria-labelledby="myLargeModalLabel" aria-hidden="true"
+									style="display: none;">
+									<input type="hidden" id="jobregistereditId">
+									<div class="modal-dialog modal-lg">
+										<div class="modal-content">
+											<div class="modal-header">
+												<button type="button" class="close" data-dismiss="modal"
+													aria-hidden="true">×</button>
+												<h5 class="modal-title" id="myLargeModalLabel">Job Register</h5>
+											</div>
+											<div class="modal-body">
+												<div class="form-wrap">
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Customer
+																	Name</label>
+																<select class="form-control" id="customer-name"
+																	data-placeholder="Choose a Category" tabindex="1">													
+																</select>
+																<span id="customer-name-error"
+																	class="error-message text-danger text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Instrument
+																	/
+																	Gauge Under Calibration</label>
+																<select class="form-control" id="instrument_master"
+																	data-placeholder="Choose a Category">
+																	
+																</select>
+																<span id="instrument-master-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Make /
+																	Manufacturer</label>
+																<select class="form-control" id="make_manufacturer"
+																	data-placeholder="Choose a Category">
+																	
+																</select>
+																<span id="make-manufacturer-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label
+																	class="control-label mb-10 text-left">Material</label>
+																<select class="form-control" id="material"
+																	data-placeholder="Choose a Category">
+																	
+																</select>
+																<span id="material-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Size
+																	/Range</label>
+																<input type="text" id="size-range" class="form-control">
+																<span id="size-range-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">L.C. /
+																	Resolution</label>
+																<input type="text" id="lc-resolution"
+																	class="form-control">
+																<span id="lc-resolution-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Serial
+																	No.</label>
+																<input type="text" id="serial-no" class="form-control">
+																<span id="serial-no-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Customer ID
+																	No.</label>
+																<input type="text" id="customer-id"
+																	class="form-control">
+																<span id="customer-id-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Model
+																	No.</label>
+																<input type="text" id="model-no" class="form-control">
+																<span id="model-no-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label
+																	class="control-label mb-10 text-left">Grade</label>
+																<input type="text" id="grade" class="form-control">
+																<span id="grade-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Customer
+																	Ref.
+																	(Delivery Challan No./PO. No./ Quote No.)</label>
+																<input type="text" id="customer-ref"
+																	class="form-control">
+																<span id="customer-ref-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Lab
+																	Reference
+																	No. (S.R.F.No.)</label>
+																<input type="text" id="lab-ref-no" class="form-control">
+																<span id="lab-ref-no-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Lab ID
+																	No.</label>
+																<input type="text" id="lab-id" class="form-control">
+																<span id="lab-id-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Certificate
+																	No.</label>
+																<input type="text" id="certificate-no"
+																	class="form-control">
+																<span id="certificate-no-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">ULR
+																	No.</label>
+																<input type="text" id="ulr-no" class="form-control">
+																<span id="ulr-no-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Date of
+																	Receipt (At Lab)</label>
+																<input type="date" id="date-receipt"
+																	class="form-control">
+																<span id="date-receipt-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Calibration
+																	Date</label>
+																<input type="date" id="calibration-date"
+																	class="form-control">
+																<span id="calibration-date-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Frequency
+																	Date</label>
+																<select class="form-control" id="frequency-date"
+																	data-placeholder="month">
+																	<option value="1">Select the month</option>
+																	<option value="3">3 month</option>
+																	<option value="6">6 month</option>
+																	<option value="12">12 month</option>
+																	<option value="24">24 month</option>
+																	<option value="48">48 month</option>
+																</select>
+																<span id="frequency-date-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Next
+																	Calibration Date</label>
+																<input type="date" id="next-calibration-date"
+																	class="form-control" readonly>
+																<span id="next-calibration-date-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Certificate
+																	Issue Date</label>
+																<input type="date" id="certificate-issue-date"
+																	class="form-control">
+																<span id="certificate-issue-date-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Remark or
+																	Note
+																	(If Any)</label>
+																<input type="text" id="remark" class="form-control">
+																<span id="remark-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Additional
+																	Details</label>
+																<input type="text" id="additional-details"
+																	class="form-control">
+																<span id="additional-details-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label
+																	class="control-label mb-10 text-left">Status</label>
+																<select class="form-control" id="status"
+																	data-placeholder="Select the Status">
+																	<option value="1">Select the Status</option>
+																	<option value="Calibration">Calibration</option>
+																	<option value="Repairing and Calibration">Repairing
+																		and Calibration</option>
+																</select>
+																<span id="status-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label
+																	class="control-label mb-10 text-left">Location</label>
+																<input type="text" id="location" class="form-control">
+																<span id="location-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+
+														<div class="col-md-4">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Cal
+																	Lab</label>
+																<select class="form-control" id="cal-lab"
+																	data-placeholder="Select the cal-lab">
+																</select>
+																<span id="cal-lab-error"
+																	class="error-message text-danger"></span>
+															</div>
+														</div>
+													</div>
+
+													<div class="row">
+														<div class="col-sm-12">
+															<div class="form-group">
+																<label class="control-label mb-10 text-left">Symbol
+																	Details</label>
+																<input type="text"
+																	value="mm  ,m  ,in  ,mg  ,g  ,kg  ,°C  ,°F  ,min  ,A  ,V  ,Ω  ,µm  ,µ  ,cm² ,psi  , ± ,½"
+																	id="symbol_id" class="form-control">
+															</div>
+														</div>
+
+													</div>
+												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button"
+													class="btn btn-success mr-10 submit-jobregister">Submit</button>
+
+												<button type="button" class="btn btn-danger text-left"
+													data-dismiss="modal" onclick="jobRegisterClear()">Close</button>
+											</div>
+										</div>
+										<!-- /.modal-content -->
+									</div>
+									<!-- /.modal-dialog -->
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+
+					<%- include( '../partial/footer' ) %>
+
+				</div>
+				<!-- /Main Content -->
+
+	</div>
+	<!-- /#wrapper -->
+
+	<!-- JavaScript -->
+
+	<!-- jQuery -->
+
+	<%- include( '../partial/commonJs' ) %>
+		<script src="../vendors/bower_components/input-search/jquery-editable-select.js"></script>
+		<script src="dist/custom/js/common.js"></script>
+		<script src="dist/custom/js/jobregister.js"></script>
+</body>
+
+</html>
