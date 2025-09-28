@@ -42,5 +42,6 @@ router.delete('/deleteCalibrationlab/:id', authenticateToken, auth.deleteCalibra
 router.put('/updateCalibrationlab/:id', authenticateToken, auth.updateCalibrationlab)
 router.post('/addCalibrationlab', authenticateToken, auth.addCalibrationlab)
 router.get('/loadAllcalbrationlabData', authenticateToken, auth.loadAllcalbrationlabData)
+router.get("/jobregisterExcelfileDownload", auth.getjobregisterExcelfileDownloadPage);
 
 module.exports = router;

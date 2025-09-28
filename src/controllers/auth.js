@@ -1,15 +1,15 @@
-
 const jwt = require("jsonwebtoken");
-// 
-const models = require('../models');
-const { Model } = require('sequelize');
-const { Sequelize } = require('sequelize');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const moment = require('moment');
-const cron = require('node-cron');
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
+//
+const models = require("../models");
+const { Model } = require("sequelize");
+const { Sequelize } = require("sequelize");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const moment = require("moment");
+const cron = require("node-cron");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const ExcelJS = require("exceljs");
 
 // const EMAIL_NAME = process.env.EMAIL_NAME;
 // const EMAIL_FROM = process.env.EMAIL_FROM;
@@ -31,23 +31,25 @@ const signin = async (req, res, next) => {
     const user = await models.tbl_users.findOne({
       where: {
         tu_email: models.sequelize.where(
-          models.sequelize.fn('LOWER', models.sequelize.col('tu_email')),
-          '=',
-          models.sequelize.fn('LOWER', tu_email)
+          models.sequelize.fn("LOWER", models.sequelize.col("tu_email")),
+          "=",
+          models.sequelize.fn("LOWER", tu_email)
         ),
-        tu_isenable: true
+        tu_isenable: true,
       },
-      include: [{
-        model: models.tbl_role_masters,
-        attributes: ['trm_id', 'trm_name']
-      }]
+      include: [
+        {
+          model: models.tbl_role_masters,
+          attributes: ["trm_id", "trm_name"],
+        },
+      ],
     });
 
     if (!user) {
       return res.status(200).json({
         status_code: "404",
         status: false,
-        message: "User not exist..!"
+        message: "User not exist..!",
       });
     }
 
@@ -56,7 +58,7 @@ const signin = async (req, res, next) => {
       "SELECT tu_password = CRYPT(:password, tu_password) AS match FROM tbl_users WHERE tu_id = :userId",
       {
         replacements: { password: tu_password, userId: user.tu_id },
-        type: models.sequelize.QueryTypes.SELECT
+        type: models.sequelize.QueryTypes.SELECT,
       }
     );
 
@@ -64,7 +66,7 @@ const signin = async (req, res, next) => {
       return res.status(200).json({
         status_code: "400",
         status: false,
-        message: "Invalid Credentials..!"
+        message: "Invalid Credentials..!",
       });
     }
 
@@ -77,77 +79,81 @@ const signin = async (req, res, next) => {
       tu_email: user.tu_email,
       tu_isenable: user.tu_isenable,
       role_id: user.tbl_role_master.trm_id,
-      role_name: user.tbl_role_master.trm_name
+      role_name: user.tbl_role_master.trm_name,
     };
 
     // Generate tokens
-    const accessToken = jwt.sign(userObj, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    const refreshToken = jwt.sign(userObj, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+    const accessToken = jwt.sign(userObj, ACCESS_TOKEN_SECRET, {
+      expiresIn: ACCESS_TOKEN_EXPIRY,
+    });
+    const refreshToken = jwt.sign(userObj, REFRESH_TOKEN_SECRET, {
+      expiresIn: REFRESH_TOKEN_EXPIRY,
+    });
 
-    res.cookie('access_token', accessToken, { httpOnly: true, secure: true });
-    res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: true });
-
-
+    res.cookie("access_token", accessToken, { httpOnly: true, secure: true });
+    res.cookie("refresh_token", refreshToken, { httpOnly: true, secure: true });
 
     // Determine redirection URL based on role
     let url = "/";
     switch (user.tbl_role_master.trm_id) {
-      case 1: url = "dashboard"; break;
+      case 1:
+        url = "dashboard";
+        break;
     }
 
     res.json({
       status: true,
       message: "Success",
       role_id: user.tbl_role_master.trm_id,
-      url: url
+      url: url,
     });
   } catch (error) {
     console.error("Signin Error:", error);
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 
 const signout = async (req, res) => {
   try {
-    res.status(200)
+    res
+      .status(200)
       .clearCookie("access_token")
       .clearCookie("refresh_token")
       .render("login", {
-        'title': 'Kushal Enterprises',
+        title: "Kushal Enterprises",
       });
   } catch (err) {
     // logger.error("signout -> " + err);
     res.status(500).json({
       status_code: "500",
       status: false,
-      message: "Something went wrong."
+      message: "Something went wrong.",
     });
     return;
   }
-}
+};
 
 const loadAllMAkeData = async (req, res, next) => {
   try {
-
     const makes = await models.tbl_make_master.findAll({
       where: {
-        tm_isenable: true
+        tm_isenable: true,
       },
-      order: [['tm_name', 'ASC']]
+      order: [["tm_name", "ASC"]],
     });
 
     res.json({
       status: true,
       message: "Success",
-      data: makes
+      data: makes,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -162,7 +168,7 @@ const deleteMake = async (req, res, next) => {
     if (!make) {
       return res.status(404).json({
         status: false,
-        message: "Make not found"
+        message: "Make not found",
       });
     }
 
@@ -172,13 +178,13 @@ const deleteMake = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Make deleted successfully"
+      message: "Make deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting make:", error);
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -189,7 +195,9 @@ const updateMake = async (req, res, next) => {
     const { make_name } = req.body;
 
     if (!make_name) {
-      return res.status(400).json({ status: false, message: "Make Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Make Name is required" });
     }
 
     const make = await models.tbl_make_master.findByPk(id);
@@ -212,39 +220,45 @@ const addMake = async (req, res, next) => {
     const { make_name } = req.body;
 
     if (!make_name) {
-      return res.status(400).json({ status: false, message: "Make Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Make Name is required" });
     }
 
-    const newMake = await models.tbl_make_master.create({ tm_name: make_name, tm_isenable: true });
+    const newMake = await models.tbl_make_master.create({
+      tm_name: make_name,
+      tm_isenable: true,
+    });
 
-    res.json({ status: true, message: "Make added successfully", data: newMake });
+    res.json({
+      status: true,
+      message: "Make added successfully",
+      data: newMake,
+    });
   } catch (error) {
     console.error("Error adding make:", error);
     res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 };
 
-
-
 const loadAllMaterialData = async (req, res, next) => {
   try {
-
     const makes = await models.tbl_material_master.findAll({
       where: {
-        tmm_isenable: true
+        tmm_isenable: true,
       },
-      order: [['tmm_name', 'ASC']]
+      order: [["tmm_name", "ASC"]],
     });
 
     res.json({
       status: true,
       message: "Success",
-      data: makes
+      data: makes,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -259,7 +273,7 @@ const deleteMaterial = async (req, res, next) => {
     if (!make) {
       return res.status(404).json({
         status: false,
-        message: "Material not found"
+        message: "Material not found",
       });
     }
 
@@ -269,13 +283,13 @@ const deleteMaterial = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Material deleted successfully"
+      message: "Material deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting Material:", error);
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -286,13 +300,17 @@ const updateMaterial = async (req, res, next) => {
     const { Material_name } = req.body;
 
     if (!Material_name) {
-      return res.status(400).json({ status: false, message: "Material Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Material Name is required" });
     }
 
     const make = await models.tbl_material_master.findByPk(id);
 
     if (!make) {
-      return res.status(404).json({ status: false, message: "Material not found" });
+      return res
+        .status(404)
+        .json({ status: false, message: "Material not found" });
     }
 
     await make.update({ tmm_name: Material_name });
@@ -309,12 +327,21 @@ const addMaterial = async (req, res, next) => {
     const { Material_name } = req.body;
 
     if (!Material_name) {
-      return res.status(400).json({ status: false, message: "Material Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Material Name is required" });
     }
 
-    const newMake = await models.tbl_material_master.create({ tmm_name: Material_name, tmm_isenable: true });
+    const newMake = await models.tbl_material_master.create({
+      tmm_name: Material_name,
+      tmm_isenable: true,
+    });
 
-    res.json({ status: true, message: "Material added successfully", data: newMake });
+    res.json({
+      status: true,
+      message: "Material added successfully",
+      data: newMake,
+    });
   } catch (error) {
     console.error("Error adding Material:", error);
     res.status(500).json({ status: false, message: "Internal Server Error" });
@@ -323,23 +350,22 @@ const addMaterial = async (req, res, next) => {
 
 const loadAllInstrumentsData = async (req, res, next) => {
   try {
-
     const makes = await models.tbl_instruments_master.findAll({
       where: {
-        tim_isenable: true
+        tim_isenable: true,
       },
-      order: [['tim_name', 'ASC']]
+      order: [["tim_name", "ASC"]],
     });
 
     res.json({
       status: true,
       message: "Success",
-      data: makes
+      data: makes,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -354,7 +380,7 @@ const deleteInstruments = async (req, res, next) => {
     if (!make) {
       return res.status(404).json({
         status: false,
-        message: "Instruments not found"
+        message: "Instruments not found",
       });
     }
 
@@ -364,13 +390,13 @@ const deleteInstruments = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Instruments deleted successfully"
+      message: "Instruments deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting Instruments:", error);
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -381,13 +407,17 @@ const updateInstruments = async (req, res, next) => {
     const { Instruments_name } = req.body;
 
     if (!Instruments_name) {
-      return res.status(400).json({ status: false, message: "Instruments Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Instruments Name is required" });
     }
 
     const make = await models.tbl_instruments_master.findByPk(id);
 
     if (!make) {
-      return res.status(404).json({ status: false, message: "Instruments not found" });
+      return res
+        .status(404)
+        .json({ status: false, message: "Instruments not found" });
     }
 
     await make.update({ tim_name: Instruments_name });
@@ -404,12 +434,21 @@ const addInstruments = async (req, res, next) => {
     const { Instruments_name } = req.body;
 
     if (!Instruments_name) {
-      return res.status(400).json({ status: false, message: "Instruments Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Instruments Name is required" });
     }
 
-    const newMake = await models.tbl_instruments_master.create({ tim_name: Instruments_name, tim_isenable: true });
+    const newMake = await models.tbl_instruments_master.create({
+      tim_name: Instruments_name,
+      tim_isenable: true,
+    });
 
-    res.json({ status: true, message: "Instruments added successfully", data: newMake });
+    res.json({
+      status: true,
+      message: "Instruments added successfully",
+      data: newMake,
+    });
   } catch (error) {
     console.error("Error adding Instruments:", error);
     res.status(500).json({ status: false, message: "Internal Server Error" });
@@ -424,19 +463,19 @@ const resetPassWord = async (req, res, next) => {
     const user = await models.tbl_users.findOne({
       where: {
         tu_email: models.sequelize.where(
-          models.sequelize.fn('LOWER', models.sequelize.col('tu_email')),
-          '=',
-          models.sequelize.fn('LOWER', tu_email)
+          models.sequelize.fn("LOWER", models.sequelize.col("tu_email")),
+          "=",
+          models.sequelize.fn("LOWER", tu_email)
         ),
-        tu_isenable: true
-      }
+        tu_isenable: true,
+      },
     });
 
     if (!user) {
       return res.status(200).json({
         status_code: "404",
         status: false,
-        message: "Email Id not exist..!"
+        message: "Email Id not exist..!",
       });
     }
 
@@ -448,32 +487,42 @@ const resetPassWord = async (req, res, next) => {
       },
     });
 
-
     let firstname = user.tu_firstname;
     let lastname = user.tu_lastname;
     let resetEmail = user.tu_email;
     let resetLink = FORGOT_PASS_LINK + resetEmail;
-    let emailcontent = `<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; margin: 0;">
+    let emailcontent =
+      `<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; margin: 0;">
     <div style="max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd; margin: 0 auto;">
         <h2 style="color: #333; text-align: center;">Reset Your Password</h2>
-        <p style="color: #555; font-size: 16px; line-height: 1.6;">Dear `+ firstname + ` ` + lastname + `,</p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">Dear ` +
+      firstname +
+      ` ` +
+      lastname +
+      `,</p>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">We received a request to reset your password. Click the button below to set a new password:</p>
         <p style="text-align: center;">
-            <a href="`+ resetLink + `" style="display: inline-block; background: #007bff; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; font-weight: bold;">Reset Password</a>
+            <a href="` +
+      resetLink +
+      `" style="display: inline-block; background: #007bff; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; font-weight: bold;">Reset Password</a>
         </p>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">If the button doesn’t work, copy and paste the following link into your browser:</p>
-        <a href="`+ resetLink + `" style="word-wrap: break-word; background: #f8f8f8; padding: 10px; border-radius: 5px; font-size: 14px; color: #333;">` + resetLink + `</a>
+        <a href="` +
+      resetLink +
+      `" style="word-wrap: break-word; background: #f8f8f8; padding: 10px; border-radius: 5px; font-size: 14px; color: #333;">` +
+      resetLink +
+      `</a>
         
         <p style="color: #555; font-size: 16px; line-height: 1.6;">If you did not request a password reset, please ignore this email or contact support.</p>
         <p style="text-align: center; margin-top: 20px; color: #888; font-size: 14px;">Best regards,<br><b>Kushal Enterprises</b><br></p>
     </div>
-</body>`
+</body>`;
 
     let mailOptions = {
-      from: '' + EMAIL_NAME + ' ' + EMAIL_ID + '',
+      from: "" + EMAIL_NAME + " " + EMAIL_ID + "",
       to: resetEmail,
       subject: "Forgot Password",
-      text: firstname + ' ' + lastname + ' ' + resetEmail,
+      text: firstname + " " + lastname + " " + resetEmail,
       html: emailcontent,
     };
 
@@ -487,17 +536,18 @@ const resetPassWord = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Password reset instructions have been sent to your email. Please check your inbox and follow the instructions to reset your password."
+      message:
+        "Password reset instructions have been sent to your email. Please check your inbox and follow the instructions to reset your password.",
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 
-const updatepassword = ((req, res) => {
+const updatepassword = (req, res) => {
   let tu_email = req.body.tu_email;
   let password = req.body.password;
 
@@ -509,25 +559,28 @@ const updatepassword = ((req, res) => {
     res.status(404).json({ status: false, message: "Password is not pass" });
     return false;
   }
-  models.tbl_users.findOne({ where: { tu_email: tu_email } })
+  models.tbl_users
+    .findOne({ where: { tu_email: tu_email } })
     .then((result) => {
       if (result) {
-        models.tbl_users.update(
-          {
-            tu_password: models.sequelize.literal(`crypt('${password}', gen_salt('bf', 10))`),
-          },
-          {
-            where: {
-              tu_email: tu_email
+        models.tbl_users
+          .update(
+            {
+              tu_password: models.sequelize.literal(
+                `crypt('${password}', gen_salt('bf', 10))`
+              ),
+            },
+            {
+              where: {
+                tu_email: tu_email,
+              },
             }
-          }
-        )
+          )
           .then((resultu) => {
             res.status(200).json({
               status: true,
               message: "Password Update successfully",
             });
-
           })
           .catch((err) => {
             console.log(err);
@@ -537,9 +590,9 @@ const updatepassword = ((req, res) => {
               message: "Failed",
               data: err,
             });
-          })
+          });
       } else {
-        res.json({ "status": false, message: "user is not registered" });
+        res.json({ status: false, message: "user is not registered" });
       }
     })
     .catch((err) => {
@@ -550,9 +603,8 @@ const updatepassword = ((req, res) => {
         message: "Failed",
         data: err,
       });
-
-    })
-})
+    });
+};
 
 const customers = async (req, res) => {
   try {
@@ -573,7 +625,7 @@ const customers = async (req, res) => {
     res.status(201).json({
       status: "success",
       message: "Vendor created successfully",
-      data: newCustomer
+      data: newCustomer,
     });
   } catch (err) {
     console.error("Error creating customer:", err);
@@ -581,10 +633,10 @@ const customers = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Failed to create customer",
-      error: err.message
+      error: err.message,
     });
   }
-}
+};
 
 const getAllinstrument_make_material = async function (req, res) {
   try {
@@ -593,11 +645,11 @@ const getAllinstrument_make_material = async function (req, res) {
       `SELECT tmm_id,tmm_name FROM tbl_material_master WHERE tmm_isenable = true;`,
       `SELECT tim_id,tim_name FROM tbl_instruments_master WHERE tim_isenable = true;`,
       `select tcm_id,tcm_contact_person,tcm_company_name from tbl_customer_master where tcm_isenable = true `,
-      `SELECT tcl_id,tcl_name FROM public.tbl_calibration_lab where tcl_isenable = true `
+      `SELECT tcl_id,tcl_name FROM public.tbl_calibration_lab where tcl_isenable = true `,
     ];
 
     const results = await Promise.all(
-      queries.map(query =>
+      queries.map((query) =>
         models.sequelize.query(query, { type: Sequelize.QueryTypes.SELECT })
       )
     );
@@ -610,16 +662,15 @@ const getAllinstrument_make_material = async function (req, res) {
         instruments_master: results[2],
         customer_master: results[3],
         calibrationlab_master: results[4],
-      }
+      },
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       status_code: "500",
       status: false,
       message: "Failed",
-      data: error
+      data: error,
     });
   }
 };
@@ -627,22 +678,48 @@ const getAllinstrument_make_material = async function (req, res) {
 const jobregister = async (req, res) => {
   try {
     let {
-      customer_name, instrument_master, make_manufacturer, material, size_range, lc_resolution, serial_no,
-      customer_id, model_no, grade, customer_ref, lab_ref_no, lab_id, certificate_no, ulr_no, date_receipt,
-      calibration_date, next_calibration_date, certificate_issue_date, remark, additional_details, cal_lab,
-      status, frequency_month,location } = req.body;
+      customer_name,
+      instrument_master,
+      make_manufacturer,
+      material,
+      size_range,
+      lc_resolution,
+      serial_no,
+      customer_id,
+      model_no,
+      grade,
+      customer_ref,
+      lab_ref_no,
+      lab_id,
+      certificate_no,
+      ulr_no,
+      date_receipt,
+      calibration_date,
+      next_calibration_date,
+      certificate_issue_date,
+      remark,
+      additional_details,
+      cal_lab,
+      status,
+      frequency_month,
+      location,
+    } = req.body;
 
-    if (!customer_name || !instrument_master || !make_manufacturer || !material || !size_range) {
-      return res.status(400).json({ status: "error", message: "Missing required fields" });
+    if (
+      !customer_name ||
+      !instrument_master ||
+      !make_manufacturer ||
+      !material ||
+      !size_range
+    ) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Missing required fields" });
     }
-    if(date_receipt == "")
-      date_receipt = null;
-    if(calibration_date == "")
-      calibration_date = null;
-    if(next_calibration_date == "")
-      next_calibration_date = null;
-    if(certificate_issue_date == "")
-      certificate_issue_date = null;
+    if (date_receipt == "") date_receipt = null;
+    if (calibration_date == "") calibration_date = null;
+    if (next_calibration_date == "") next_calibration_date = null;
+    if (certificate_issue_date == "") certificate_issue_date = null;
 
     const newCustomer = await models.tbl_job_register.create({
       tjr_fk_tcm_id: customer_name,
@@ -677,18 +754,28 @@ const jobregister = async (req, res) => {
       tjr_updatedat: moment().utc().format(),
     });
 
-    return res.status(201).json({ status: true, message: "Job registered successfully", data: newCustomer });
-
+    return res
+      .status(201)
+      .json({
+        status: true,
+        message: "Job registered successfully",
+        data: newCustomer,
+      });
   } catch (error) {
     console.error("Error in jobregister API:", error);
-    return res.status(500).json({ status: false, message: "Internal server error", error: error.message });
+    return res
+      .status(500)
+      .json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
   }
 };
 
 // Function to fetch data using raw SQL query
 const fetchData = async (customer_id) => {
   try {
-
     var st_name = ` SELECT 
                 tcm.tcm_id as tcm_id,
                 tcm.tcm_contact_person AS contact_name,
@@ -717,12 +804,12 @@ const fetchData = async (customer_id) => {
     if (customer_id) {
       st_name += ` AND tcm.tcm_id = ` + customer_id + ``;
     }
-    let results = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT });
+    let results = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
     return results;
   } catch (error) {
-    console.error('Database error:', error);
+    console.error("Database error:", error);
     return [];
   }
 };
@@ -730,12 +817,12 @@ const fetchData = async (customer_id) => {
 const generatePDF = (data, filePath) => {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A2', margin: 50 });
+      const doc = new PDFDocument({ size: "A2", margin: 50 });
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
 
       // Title
-      doc.fontSize(16).text('Calibration Due Instruments', { align: 'center' });
+      doc.fontSize(16).text("Calibration Due Instruments", { align: "center" });
       doc.moveDown();
 
       // Table Structure
@@ -746,16 +833,29 @@ const generatePDF = (data, filePath) => {
 
       // Headers
       const headers = [
-        'Customer Id', 'Serial No', 'Instrument Name', 'Range', 'Resolution', 'Make', 'Cal Date', 'Due Date'
+        "Customer Id",
+        "Serial No",
+        "Instrument Name",
+        "Range",
+        "Resolution",
+        "Make",
+        "Cal Date",
+        "Due Date",
       ];
 
       // Draw Header Background
-      doc.fillColor('#90acd1')
-        .rect(startX, startY, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+      doc
+        .fillColor("#90acd1")
+        .rect(
+          startX,
+          startY,
+          colWidths.reduce((a, b) => a + b, 0),
+          rowHeight
+        )
         .fill();
 
-      doc.fillColor('white'); // White text for headers
-      doc.font('Times-Bold').fontSize(10);
+      doc.fillColor("white"); // White text for headers
+      doc.font("Times-Bold").fontSize(10);
 
       let x = startX;
       headers.forEach((header, index) => {
@@ -764,32 +864,47 @@ const generatePDF = (data, filePath) => {
       });
 
       // Draw Header Borders
-      doc.moveTo(startX, startY).lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY).stroke(); // Top
-      doc.moveTo(startX, startY + rowHeight).lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY + rowHeight).stroke(); // Bottom
+      doc
+        .moveTo(startX, startY)
+        .lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY)
+        .stroke(); // Top
+      doc
+        .moveTo(startX, startY + rowHeight)
+        .lineTo(
+          startX + colWidths.reduce((a, b) => a + b, 0),
+          startY + rowHeight
+        )
+        .stroke(); // Bottom
 
       // Draw Column Lines for Header
       x = startX;
-      colWidths.forEach(width => {
-        doc.moveTo(x, startY).lineTo(x, startY + rowHeight).stroke();
+      colWidths.forEach((width) => {
+        doc
+          .moveTo(x, startY)
+          .lineTo(x, startY + rowHeight)
+          .stroke();
         x += width;
       });
-      doc.moveTo(x, startY).lineTo(x, startY + rowHeight).stroke(); // Last column border
+      doc
+        .moveTo(x, startY)
+        .lineTo(x, startY + rowHeight)
+        .stroke(); // Last column border
 
       startY += rowHeight; // Move to next row
 
       // Data Rows
-      doc.fillColor('black').font('Times-Roman').fontSize(10);
-      data.forEach(row => {
+      doc.fillColor("black").font("Times-Roman").fontSize(10);
+      data.forEach((row) => {
         let x = startX;
         const values = [
-          row.customer_id || 'N/A',
-          row.serial_no || 'N/A',
-          row.instrument_name || 'N/A',
-          row.range_size || 'N/A',
-          row.resolution_lc || 'N/A',
-          row.make || 'N/A',
-          row.tjr_calibration_date || 'N/A',
-          row.tjr_next_calibration_date || 'N/A'
+          row.customer_id || "N/A",
+          row.serial_no || "N/A",
+          row.instrument_name || "N/A",
+          row.range_size || "N/A",
+          row.resolution_lc || "N/A",
+          row.make || "N/A",
+          row.tjr_calibration_date || "N/A",
+          row.tjr_next_calibration_date || "N/A",
         ];
 
         values.forEach((text, index) => {
@@ -798,22 +913,37 @@ const generatePDF = (data, filePath) => {
         });
 
         // Draw row borders
-        doc.moveTo(startX, startY).lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY).stroke();
-        doc.moveTo(startX, startY + rowHeight).lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY + rowHeight).stroke();
+        doc
+          .moveTo(startX, startY)
+          .lineTo(startX + colWidths.reduce((a, b) => a + b, 0), startY)
+          .stroke();
+        doc
+          .moveTo(startX, startY + rowHeight)
+          .lineTo(
+            startX + colWidths.reduce((a, b) => a + b, 0),
+            startY + rowHeight
+          )
+          .stroke();
 
         // Draw column lines
         x = startX;
-        colWidths.forEach(width => {
-          doc.moveTo(x, startY).lineTo(x, startY + rowHeight).stroke();
+        colWidths.forEach((width) => {
+          doc
+            .moveTo(x, startY)
+            .lineTo(x, startY + rowHeight)
+            .stroke();
           x += width;
         });
-        doc.moveTo(x, startY).lineTo(x, startY + rowHeight).stroke();
+        doc
+          .moveTo(x, startY)
+          .lineTo(x, startY + rowHeight)
+          .stroke();
 
         startY += rowHeight; // Move to next row
       });
 
       doc.end();
-      stream.on('finish', () => resolve(filePath));
+      stream.on("finish", () => resolve(filePath));
     } catch (error) {
       reject(error);
     }
@@ -834,15 +964,15 @@ const sendEmail = async (email, name, pdfFilePath) => {
     const mailOptions = {
       from: `${EMAIL_NAME} <${EMAIL_ID}>`,
       to: email,
-      subject: 'Calibration Due Notification',
+      subject: "Calibration Due Notification",
       text: `Dear ${name} Sir,\n\nAs per our records, the instruments listed in the attached document are due.\nKindly review the details and take the necessary action.\n\nBest Regards,\n\nSandeep Jadhav (+91-9850535303) \nKushal Enterprises.\n453, Jyotiba Nagar, Behind Vishnuraj Mangal Karyalay,\nNear Ashwini Colony, Kalewadi, Pimpri, Pune - 411 017.`,
       attachments: [
         {
-          filename: 'Calibration_Due.pdf',
+          filename: "Calibration_Due.pdf",
           path: pdfFilePath,
-          contentType: 'application/pdf'
-        }
-      ]
+          contentType: "application/pdf",
+        },
+      ],
     };
 
     await transporter.sendMail(mailOptions);
@@ -854,22 +984,21 @@ const sendEmail = async (email, name, pdfFilePath) => {
 
 // Main function to process data and send emails
 const processAndSendEmails = async (customer_id) => {
-
   const data = await fetchData(customer_id);
 
   if (data.length === 0) {
-    console.log('⚠ No calibration due instruments found. No email sent.');
+    console.log("⚠ No calibration due instruments found. No email sent.");
     return;
   }
 
   // Group data by customer email
   const customerDataMap = {};
-  data.forEach(row => {
+  data.forEach((row) => {
     const email = row.company_email;
     if (!customerDataMap[email]) {
       customerDataMap[email] = {
         name: row.contact_name,
-        data: []
+        data: [],
       };
     }
     customerDataMap[email].data.push(row);
@@ -878,7 +1007,7 @@ const processAndSendEmails = async (customer_id) => {
   // Send separate email to each customer
   for (const email in customerDataMap) {
     const { name, data } = customerDataMap[email];
-    const pdfFilePath = `./Calibration_Due_${email.replace(/[@.]/g, '_')}.pdf`;
+    const pdfFilePath = `./Calibration_Due_${email.replace(/[@.]/g, "_")}.pdf`;
 
     try {
       await generatePDF(data, pdfFilePath);
@@ -912,18 +1041,21 @@ const addDataInReminderTable = async (data) => {
 };
 
 // Schedule job to run every day at 8 AM
-cron.schedule('0 10 * * *', () => {
-  // cron.schedule('*/1 * * * *', () => {
-  console.log('Running cron job at 8 AM');
-  processAndSendEmails();
-}, {
-  scheduled: true,
-  timezone: 'Asia/Kolkata' // Change this to your timezone
-});
+cron.schedule(
+  "0 10 * * *",
+  () => {
+    // cron.schedule('*/1 * * * *', () => {
+    console.log("Running cron job at 8 AM");
+    processAndSendEmails();
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata", // Change this to your timezone
+  }
+);
 
 const getDashboardData = async (req, res, next) => {
   try {
-
     var st_name = ` SELECT 
                 tcm.tcm_id as customer_id,
                 tcm.tcm_contact_person AS contact_name,
@@ -951,21 +1083,21 @@ const getDashboardData = async (req, res, next) => {
                 tcm.tcm_company_name,
                 tjr.tjr_calibration_date,
                 tjr.tjr_next_calibration_date;`;
-    let due_customer = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT });
+    let due_customer = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     var st_name1 = ` SELECT count(*) as toatl_customer
             FROM tbl_customer_master;`;
-    let total_customer = await models.sequelize.query(
-      st_name1,
-      { type: Sequelize.QueryTypes.SELECT });
+    let total_customer = await models.sequelize.query(st_name1, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     var st_name2 = ` SELECT count(*) as active_customer
             FROM tbl_customer_master WHERE tcm_isenable = true;`;
-    let active_customer = await models.sequelize.query(
-      st_name2,
-      { type: Sequelize.QueryTypes.SELECT });
+    let active_customer = await models.sequelize.query(st_name2, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     var st_name3 = `SELECT count(*) as total_due
             FROM tbl_job_register tjr
@@ -978,19 +1110,24 @@ const getDashboardData = async (req, res, next) => {
                 tcm.tcm_email,
                 tcm.tcm_mobile,
                 TO_CHAR(tjr.tjr_calibration_date, 'DD-MM-YYYY'),
-                TO_CHAR(tjr.tjr_next_calibration_date, 'DD-MM-YYYY');`
-    let total_due_customer = await models.sequelize.query(
-      st_name3,
-      { type: Sequelize.QueryTypes.SELECT });
+                TO_CHAR(tjr.tjr_next_calibration_date, 'DD-MM-YYYY');`;
+    let total_due_customer = await models.sequelize.query(st_name3, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
     res.json({
       status: true,
       message: "Success",
-      data: { due_customer: due_customer, total_customer: total_customer, active_customer: active_customer, total_due_customer: total_due_customer }
+      data: {
+        due_customer: due_customer,
+        total_customer: total_customer,
+        active_customer: active_customer,
+        total_due_customer: total_due_customer,
+      },
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -1023,20 +1160,19 @@ const getCustomerDueData = async (req, res, next) => {
             AND DATE(tjr.tjr_next_calibration_date) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
             AND tcm.tcm_id = ${customer_id}`;
 
-    let due_customer = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    let due_customer = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     res.json({
       status: true,
       message: "Success",
-      data: due_customer
+      data: due_customer,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -1047,34 +1183,33 @@ const sendReminder = async (req, res, next) => {
     await processAndSendEmails(customer_id);
     res.json({
       status: true,
-      message: "Success"
+      message: "Success",
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 
 const getcustomerdata = async (req, res, next) => {
   try {
-
     const customer = await models.tbl_customer_master.findAll({
       where: {
-        tcm_isenable: true
-      }
+        tcm_isenable: true,
+      },
     });
 
     res.json({
       status: true,
       message: "Success",
-      data: customer
+      data: customer,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -1085,13 +1220,17 @@ const updatecustomers = async (req, res, next) => {
     const { contact_name, company_name, email, mobile, address } = req.body;
 
     if (!contact_name || !company_name || !email || !mobile || !address) {
-      return res.status(400).json({ status: false, message: "All fields are required." });
+      return res
+        .status(400)
+        .json({ status: false, message: "All fields are required." });
     }
 
     const customer = await models.tbl_customer_master.findByPk(id);
 
     if (!customer) {
-      return res.status(404).json({ status: false, message: "Customer not found." });
+      return res
+        .status(404)
+        .json({ status: false, message: "Customer not found." });
     }
 
     await customer.update({
@@ -1102,7 +1241,10 @@ const updatecustomers = async (req, res, next) => {
       tcm_address: address,
     });
 
-    res.json({ status: true, message: "Customer Mangement updated successfully." });
+    res.json({
+      status: true,
+      message: "Customer Mangement updated successfully.",
+    });
   } catch (error) {
     console.error("Error updating customer:", error);
     res.status(500).json({ status: false, message: "Internal server error." });
@@ -1117,7 +1259,9 @@ const deleteCustomerManagement = async (req, res, next) => {
     const customer = await models.tbl_customer_master.findByPk(id);
 
     if (!customer) {
-      return res.status(404).json({ status: false, message: "Customer not found." });
+      return res
+        .status(404)
+        .json({ status: false, message: "Customer not found." });
     }
 
     // Soft delete the record by updating the isEnabled field
@@ -1125,13 +1269,13 @@ const deleteCustomerManagement = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Customer management deleted successfully."
+      message: "Customer management deleted successfully.",
     });
   } catch (error) {
     console.error("Error deleting customer management:", error);
     res.status(500).json({
       status: false,
-      message: "Internal server error."
+      message: "Internal server error.",
     });
   }
 };
@@ -1177,26 +1321,25 @@ FROM
   LEFT JOIN tbl_material_master tmm ON tmm.tmm_id = tjr.tjr_fk_tmm_id
   LEFT JOIN tbl_calibration_lab tcl ON tcl.tcl_id = tjr.tjr_fk_tcl_id
   LEFT JOIN tbl_make_master tm ON tm.tm_id = tjr.tjr_fk_tm_id where tjr.tjr_isenable = true order by tjr.tjr_id desc`;
-    let job_register = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT });
+    let job_register = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     res.json({
       status: true,
       message: "Success",
-      data: job_register
+      data: job_register,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 
 const updateJobRegistrationData = async (req, res, next) => {
   try {
-
     const { id } = req.params;
 
     var st_name = `SELECT
@@ -1238,46 +1381,76 @@ FROM
   LEFT JOIN tbl_material_master tmm ON tmm.tmm_id = tjr.tjr_fk_tmm_id
   LEFT JOIN tbl_calibration_lab tcl ON tcl.tcl_id = tjr.tjr_fk_tcl_id
   LEFT JOIN tbl_make_master tm ON tm.tm_id = tjr.tjr_fk_tm_id where tjr.tjr_isenable = true and tjr.tjr_id = ${id}`;
-    let job_register = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT });
+    let job_register = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     res.json({
       status: true,
       message: "Success",
-      data: job_register
+      data: job_register,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 const updatejobregister = async (req, res, next) => {
   try {
     const { id } = req.params;
-    let { customer_name, instrument_master, make_manufacturer, material, size_range, lc_resolution, serial_no,
-      customer_id, model_no, grade, customer_ref, lab_ref_no, lab_id, certificate_no, ulr_no, date_receipt,
-      calibration_date, next_calibration_date, certificate_issue_date, remark, additional_details, cal_lab,
-      status, frequency_month,location } = req.body;
+    let {
+      customer_name,
+      instrument_master,
+      make_manufacturer,
+      material,
+      size_range,
+      lc_resolution,
+      serial_no,
+      customer_id,
+      model_no,
+      grade,
+      customer_ref,
+      lab_ref_no,
+      lab_id,
+      certificate_no,
+      ulr_no,
+      date_receipt,
+      calibration_date,
+      next_calibration_date,
+      certificate_issue_date,
+      remark,
+      additional_details,
+      cal_lab,
+      status,
+      frequency_month,
+      location,
+    } = req.body;
 
-    if (!id || !customer_name || !instrument_master || !make_manufacturer || !material || !size_range) {
-      return res.status(400).json({ status: "error", message: "Missing required fields" });
+    if (
+      !id ||
+      !customer_name ||
+      !instrument_master ||
+      !make_manufacturer ||
+      !material ||
+      !size_range
+    ) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Missing required fields" });
     }
-    if(date_receipt == "")
-      date_receipt = null;
-    if(calibration_date == "")
-      calibration_date = null;
-    if(next_calibration_date == "")
-      next_calibration_date = null;
-    if(certificate_issue_date == "")
-      certificate_issue_date = null;
+    if (date_receipt == "") date_receipt = null;
+    if (calibration_date == "") calibration_date = null;
+    if (next_calibration_date == "") next_calibration_date = null;
+    if (certificate_issue_date == "") certificate_issue_date = null;
 
     const jobRegister = await models.tbl_job_register.findByPk(id);
 
     if (!jobRegister) {
-      return res.status(404).json({ status: "error", message: "Job Register not found." });
+      return res
+        .status(404)
+        .json({ status: "error", message: "Job Register not found." });
     }
 
     await jobRegister.update({
@@ -1338,19 +1511,19 @@ from
   left join tbl_instruments_master tim on tim.tim_id = tjr.tjr_fk_tim_id
   left join tbl_material_master tmm on tmm.tmm_id = tjr.tjr_fk_tmm_id
   left join tbl_make_master tm on tm.tm_id = tjr.tjr_fk_tm_id  Where tjr.tjr_isenable = true And tcm.tcm_id = ${comapny_id}`;
-    let company_master = await models.sequelize.query(
-      st_name,
-      { type: Sequelize.QueryTypes.SELECT });
+    let company_master = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
 
     res.json({
       status: true,
       message: "Success",
-      data: company_master
+      data: company_master,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -1363,7 +1536,9 @@ const deletejobregister = async (req, res, next) => {
     const jobregister = await models.tbl_job_register.findByPk(id);
 
     if (!jobregister) {
-      return res.status(404).json({ status: false, message: "jobregister not found." });
+      return res
+        .status(404)
+        .json({ status: false, message: "jobregister not found." });
     }
 
     // Soft delete the record by updating the isEnabled field
@@ -1371,13 +1546,13 @@ const deletejobregister = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Job register deleted successfully."
+      message: "Job register deleted successfully.",
     });
   } catch (error) {
     console.error("Error deleting jobregister :", error);
     res.status(500).json({
       status: false,
-      message: "Internal server error."
+      message: "Internal server error.",
     });
   }
 };
@@ -1392,7 +1567,7 @@ const deleteCalibrationlab = async (req, res, next) => {
     if (!calibrationLab) {
       return res.status(404).json({
         status: false,
-        message: "Calibrationlab not found"
+        message: "Calibrationlab not found",
       });
     }
 
@@ -1401,13 +1576,13 @@ const deleteCalibrationlab = async (req, res, next) => {
 
     res.json({
       status: true,
-      message: "Calibrationlab deleted successfully"
+      message: "Calibrationlab deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting Calibrationlab:", error);
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
@@ -1418,21 +1593,30 @@ const updateCalibrationlab = async (req, res, next) => {
     const { Calibrationlab_name } = req.body;
 
     if (!Calibrationlab_name || !Calibrationlab_name.trim()) {
-      return res.status(400).json({ status: false, message: "Calibrationlab Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Calibrationlab Name is required" });
     }
 
     const calibrationLab = await models.tbl_calibration_lab.findByPk(id);
 
     if (!calibrationLab) {
-      return res.status(404).json({ status: false, message: "Calibrationlab not found" });
+      return res
+        .status(404)
+        .json({ status: false, message: "Calibrationlab not found" });
     }
 
     await calibrationLab.update({ tcl_name: Calibrationlab_name.trim() });
 
-    return res.json({ status: true, message: "Calibrationlab updated successfully" });
+    return res.json({
+      status: true,
+      message: "Calibrationlab updated successfully",
+    });
   } catch (error) {
     console.error("Error updating Calibrationlab:", error);
-    return res.status(500).json({ status: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal Server Error" });
   }
 };
 
@@ -1441,52 +1625,148 @@ const addCalibrationlab = async (req, res, next) => {
     const { Calibrationlab_name } = req.body;
 
     if (!Calibrationlab_name) {
-      return res.status(400).json({ status: false, message: "Calibrationlab Name is required" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Calibrationlab Name is required" });
     }
 
     const newCalibrationlab = await models.tbl_calibration_lab.create({
       tcl_name: Calibrationlab_name.trim(),
-      tcl_isenable: true
+      tcl_isenable: true,
     });
 
     return res.status(201).json({
       status: true,
       message: "Calibrationlab added successfully",
-      data: newCalibrationlab
+      data: newCalibrationlab,
     });
   } catch (error) {
     console.error("Error adding Calibrationlab:", error);
     return res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
 
 const loadAllcalbrationlabData = async (req, res, next) => {
   try {
-
     const makes = await models.tbl_calibration_lab.findAll({
       where: {
-        tcl_isenable: true
+        tcl_isenable: true,
       },
-      order: [['tcl_name', 'ASC']]
+      order: [["tcl_name", "ASC"]],
     });
 
     res.json({
       status: true,
       message: "Success",
-      data: makes
+      data: makes,
     });
   } catch (error) {
     res.status(500).json({
       status: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
+
+const getjobregisterExcelfileDownloadPage = async (req, res, next) => {
+  try {
+    const st_name = `
+    SELECT
+    tcm.tcm_company_name      AS company_name,
+    tmm.tmm_name              AS material_name,
+    tm.tm_name                AS make_name,
+    tjr.tjr_customer_id       AS customer_id,
+    tim.tim_name              AS instrument_name,
+    tjr.tjr_range             AS measuring_range,
+    tjr.tjr_resolution        AS resolution,
+    tjr.tjr_srno              AS serial_no,
+    tjr.tjr_modelno           AS model_no,
+    tjr.tjr_grande            AS grade,
+    tjr.tjr_customer_challan_no AS customer_challan_no,
+    tjr.tjr_lab_ref_no        AS lab_ref_no,
+    tjr.tjr_certificate_no    AS certificate_no,
+    tjr.tjr_ulr_no            AS ulr_no,
+    tjr.tjr_reciept_date      AS receipt_date,
+    tjr.tjr_calibration_date  AS calibration_date,
+    tjr.tjr_next_calibration_date AS next_calibration_date,
+    tjr.tjr_certificate_date  AS certificate_date,
+    tjr.tjr_remark            AS remarks,
+    tjr.tjr_additional_details AS additional_details,
+    tcl.tcl_name              AS lab_name,
+    tjr.tjr_location          AS location,
+    tjr.tjr_status            AS status,
+    tjr.tjr_frequency_month   AS frequency_month
+FROM
+    tbl_job_register tjr
+    LEFT JOIN tbl_customer_master tcm ON tcm.tcm_id = tjr.tjr_fk_tcm_id
+    LEFT JOIN tbl_instruments_master tim ON tim.tim_id = tjr.tjr_fk_tim_id
+    LEFT JOIN tbl_material_master tmm ON tmm.tmm_id = tjr.tjr_fk_tmm_id
+    LEFT JOIN tbl_calibration_lab tcl ON tcl.tcl_id = tjr.tjr_fk_tcl_id
+    LEFT JOIN tbl_make_master tm ON tm.tm_id = tjr.tjr_fk_tm_id
+WHERE
+    tjr.tjr_isenable = TRUE
+ORDER BY
+    tjr.tjr_id DESC`;
+
+    let job_register = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Job Register');
+
+   if (job_register.length > 0) {
+      worksheet.columns = Object.keys(job_register[0]).map((key) => ({
+        header: key,
+        key: key,
+        width: 25,
+      }));
+      job_register.forEach((row) => {
+        const formattedRow = {};
+        for (const key in row) {
+          if (row[key] instanceof Date) {
+            formattedRow[key] = row[key].toISOString().split('T')[0]; 
+          } else if (row[key] === null) {
+            formattedRow[key] = ''; 
+          } else {
+            formattedRow[key] = row[key];
+          }
+        }
+        worksheet.addRow(formattedRow);
+      });
+    }
+
+    // Set response headers
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=job_register.xlsx'
+    );
+
+    // Send Excel file to client
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+
 module.exports = {
-  loadAllcalbrationlabData ,deleteCalibrationlab,updateCalibrationlab,addCalibrationlab,
+  getjobregisterExcelfileDownloadPage,
+  loadAllcalbrationlabData,
+  deleteCalibrationlab,
+  updateCalibrationlab,
+  addCalibrationlab,
   updateJobRegistrationData,
   deletejobregister,
   getcompanymaster,
@@ -1516,5 +1796,5 @@ module.exports = {
   updatepassword,
   getCustomerDueData,
   getDashboardData,
-  sendReminder
-}
+  sendReminder,
+};
