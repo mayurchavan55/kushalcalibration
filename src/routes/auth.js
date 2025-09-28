@@ -43,5 +43,7 @@ router.put('/updateCalibrationlab/:id', authenticateToken, auth.updateCalibratio
 router.post('/addCalibrationlab', authenticateToken, auth.addCalibrationlab)
 router.get('/loadAllcalbrationlabData', authenticateToken, auth.loadAllcalbrationlabData)
 router.get("/jobregisterExcelfileDownload", auth.getjobregisterExcelfileDownloadPage);
+router.get('/companymasterExcelfileDownload/:company_id', auth.getjobregisterExcelfileDownloadPage);
+router.get("/companymasterPdfFile/:company_id", auth.generatecompanymasterPDF);
 
 module.exports = router;

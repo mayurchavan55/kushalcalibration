@@ -1493,6 +1493,7 @@ const getcompanymaster = async (req, res, next) => {
   try {
     var st_name = `select
   tcm.tcm_company_name,
+  tcm.tcm_id AS company_id,
   tcm.tcm_address,
   tmm.tmm_name,
   tm.tm_name,
@@ -1673,63 +1674,72 @@ const loadAllcalbrationlabData = async (req, res, next) => {
 
 const getjobregisterExcelfileDownloadPage = async (req, res, next) => {
   try {
+    const { company_id } = req.params; 
+
+    let whereCondition = "tjr.tjr_isenable = TRUE";
+    if (company_id) {
+      whereCondition += ` AND tcm.tcm_id = ${company_id}`;
+    }
+
     const st_name = `
-    SELECT
-    tcm.tcm_company_name      AS company_name,
-    tmm.tmm_name              AS material_name,
-    tm.tm_name                AS make_name,
-    tjr.tjr_customer_id       AS customer_id,
-    tim.tim_name              AS instrument_name,
-    tjr.tjr_range             AS measuring_range,
-    tjr.tjr_resolution        AS resolution,
-    tjr.tjr_srno              AS serial_no,
-    tjr.tjr_modelno           AS model_no,
-    tjr.tjr_grande            AS grade,
-    tjr.tjr_customer_challan_no AS customer_challan_no,
-    tjr.tjr_lab_ref_no        AS lab_ref_no,
-    tjr.tjr_certificate_no    AS certificate_no,
-    tjr.tjr_ulr_no            AS ulr_no,
-    tjr.tjr_reciept_date      AS receipt_date,
-    tjr.tjr_calibration_date  AS calibration_date,
-    tjr.tjr_next_calibration_date AS next_calibration_date,
-    tjr.tjr_certificate_date  AS certificate_date,
-    tjr.tjr_remark            AS remarks,
-    tjr.tjr_additional_details AS additional_details,
-    tcl.tcl_name              AS lab_name,
-    tjr.tjr_location          AS location,
-    tjr.tjr_status            AS status,
-    tjr.tjr_frequency_month   AS frequency_month
-FROM
-    tbl_job_register tjr
-    LEFT JOIN tbl_customer_master tcm ON tcm.tcm_id = tjr.tjr_fk_tcm_id
-    LEFT JOIN tbl_instruments_master tim ON tim.tim_id = tjr.tjr_fk_tim_id
-    LEFT JOIN tbl_material_master tmm ON tmm.tmm_id = tjr.tjr_fk_tmm_id
-    LEFT JOIN tbl_calibration_lab tcl ON tcl.tcl_id = tjr.tjr_fk_tcl_id
-    LEFT JOIN tbl_make_master tm ON tm.tm_id = tjr.tjr_fk_tm_id
-WHERE
-    tjr.tjr_isenable = TRUE
-ORDER BY
-    tjr.tjr_id DESC`;
+      SELECT
+        tcm.tcm_company_name      AS company_name,
+        tmm.tmm_name              AS material_name,
+        tm.tm_name                AS make_name,
+        tjr.tjr_customer_id       AS customer_id,
+        tim.tim_name              AS instrument_name,
+        tjr.tjr_range             AS measuring_range,
+        tjr.tjr_resolution        AS resolution,
+        tjr.tjr_srno              AS serial_no,
+        tjr.tjr_modelno           AS model_no,
+        tjr.tjr_grande            AS grade,
+        tjr.tjr_customer_challan_no AS customer_challan_no,
+        tjr.tjr_lab_ref_no        AS lab_ref_no,
+        tjr.tjr_certificate_no    AS certificate_no,
+        tjr.tjr_ulr_no            AS ulr_no,
+        tjr.tjr_reciept_date      AS receipt_date,
+        tjr.tjr_calibration_date  AS calibration_date,
+        tjr.tjr_next_calibration_date AS next_calibration_date,
+        tjr.tjr_certificate_date  AS certificate_date,
+        tjr.tjr_remark            AS remarks,
+        tjr.tjr_additional_details AS additional_details,
+        tcl.tcl_name              AS lab_name,
+        tjr.tjr_location          AS location,
+        tjr.tjr_status            AS status,
+        tjr.tjr_frequency_month   AS frequency_month
+      FROM
+        tbl_job_register tjr
+        LEFT JOIN tbl_customer_master tcm ON tcm.tcm_id = tjr.tjr_fk_tcm_id
+        LEFT JOIN tbl_instruments_master tim ON tim.tim_id = tjr.tjr_fk_tim_id
+        LEFT JOIN tbl_material_master tmm ON tmm.tmm_id = tjr.tjr_fk_tmm_id
+        LEFT JOIN tbl_calibration_lab tcl ON tcl.tcl_id = tjr.tjr_fk_tcl_id
+        LEFT JOIN tbl_make_master tm ON tm.tm_id = tjr.tjr_fk_tm_id
+      WHERE
+        ${whereCondition}
+      ORDER BY
+        tjr.tjr_id DESC`;
 
     let job_register = await models.sequelize.query(st_name, {
       type: Sequelize.QueryTypes.SELECT,
     });
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Job Register');
 
-   if (job_register.length > 0) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Job Register");
+
+    if (job_register.length > 0) {
       worksheet.columns = Object.keys(job_register[0]).map((key) => ({
         header: key,
         key: key,
         width: 25,
       }));
+
       job_register.forEach((row) => {
         const formattedRow = {};
         for (const key in row) {
           if (row[key] instanceof Date) {
-            formattedRow[key] = row[key].toISOString().split('T')[0]; 
+            formattedRow[key] = row[key].toISOString().split("T")[0];
           } else if (row[key] === null) {
-            formattedRow[key] = ''; 
+            formattedRow[key] = "";
           } else {
             formattedRow[key] = row[key];
           }
@@ -1738,30 +1748,70 @@ ORDER BY
       });
     }
 
-    // Set response headers
     res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
     res.setHeader(
-      'Content-Disposition',
-      'attachment; filename=job_register.xlsx'
+      "Content-Disposition",
+      "attachment; filename=job_register.xlsx"
     );
 
-    // Send Excel file to client
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({
       status: false,
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
     });
   }
 };
 
 
+
+const generatecompanymasterPDF = async (req, res, next) => {
+   const { company_id } = req.params; 
+  try {
+    var st_name = `select
+  tcm.tcm_company_name,
+  tcm.tcm_id AS company_id,
+  tcm.tcm_address,
+  tmm.tmm_name,
+  tm.tm_name,
+  tim.tim_name,
+  tjr_range,
+  tjr_resolution,
+  tjr_srno,
+  tjr_customer_id,
+  tjr_calibration_date,
+  tjr_next_calibration_date,
+  tjr_remark,
+  tjr_location
+from
+  tbl_job_register tjr
+  left join tbl_customer_master tcm on tcm.tcm_id = tjr.tjr_fk_tcm_id
+  left join tbl_instruments_master tim on tim.tim_id = tjr.tjr_fk_tim_id
+  left join tbl_material_master tmm on tmm.tmm_id = tjr.tjr_fk_tmm_id
+  left join tbl_make_master tm on tm.tm_id = tjr.tjr_fk_tm_id  Where tjr.tjr_isenable = true And tcm.tcm_id = ${company_id}`;
+    let company_master = await models.sequelize.query(st_name, {
+      type: Sequelize.QueryTypes.SELECT,
+    });
+
+    res.json({
+      status: true,
+      message: "Success",
+      data: company_master,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: "Internal Server Error",
+    });
+  }
+};
 module.exports = {
+  generatecompanymasterPDF,
   getjobregisterExcelfileDownloadPage,
   loadAllcalbrationlabData,
   deleteCalibrationlab,
