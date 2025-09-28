@@ -105,46 +105,6 @@ function getinventorytabledata() {
   });
 }
 
-
-// function downloadTablePDF(Company_name, Company_address) {
-//   const { jsPDF } = window.jspdf;
-
-//   const doc = new jsPDF({
-//     orientation: "portrait",
-//     unit: "mm",
-//     format: "a2",
-//   });
-
-//   const pageWidth = doc.internal.pageSize.getWidth();
-
-//   // Print company name if available
-//   if (Company_name) {
-//     doc.setFont("helvetica", "bold");
-//     doc.setFontSize(18);
-//     const nameTextWidth = doc.getTextWidth(Company_name);
-//     doc.text(Company_name, (pageWidth - nameTextWidth) / 2, 20);
-//   }
-
-//   // Print company address if available
-//   if (Company_address) {
-//     doc.setFont("helvetica", "");
-//     doc.setFontSize(14);
-//     const addressTextWidth = doc.getTextWidth(Company_address);
-//     doc.text(Company_address, (pageWidth - addressTextWidth) / 2, 30);
-//   }
-
-//   doc.autoTable({
-//     html: "#CompanyTable",
-//     startY: 40,
-//     theme: "grid",
-//     margin: { top: 10 },
-//     styles: { fontSize: 12 },
-//     headStyles: { fillColor: [37, 150, 190] },
-//   });
-
-//   doc.save("Company List.pdf");
-// }
-
 function downloadTableExcel() {
   var company_id = $("#customer-name").val();
   fetch(`/companymasterExcelfileDownload/${company_id}`)
